@@ -46,5 +46,55 @@
  *   // grandTotal: 1000 + 0 + 50 - 150 = 900
  */
 export function buildZomatoOrder(cart, coupon) {
-  // Your code here
+  if (!Array.isArray(cart) || cart.length === 0) return null;
+
+  let items = cart
+    .filter((item) => item.qty > 0)
+    .map((item) => {
+      const addonTotal = (item.addons || []).reduce((sum, addon) => {
+        const price = Number(addon.split(":")[1]);
+        return sum + price;
+      }, 0);
+
+      return {
+        name: item.name,
+        qty: item.qty,
+        basePrice: item.price,
+        addonTotal,
+        itemTotal: (item.price + addonTotal) * item.qty,
+      };
+    });
+
+  let subtotal = items.reduce((acc, item) => acc + item.itemTotal, 0);
+
+  let deliveryFee = subtotal < 500 ? 30 : subtotal < 1000 ? 15 : 0;
+
+  let gst = parseFloat((subtotal * 0.05).toFixed(2));
+
+  let originalDeliveryFee = deliveryFee;
+
+  let couponCode = {
+    FIRST50: Math.min(subtotal * 0.5, 150),
+    FLAT100: 100,
+    FREESHIP: originalDeliveryFee,
+  };
+
+  let discount = couponCode[coupon?.toUpperCase()] || 0;
+
+  if (coupon?.toUpperCase() === "FREESHIP") {
+    deliveryFee = 0;
+  }
+
+  let grandTotal = Math.max(0, Number((subtotal + deliveryFee + gst - discount).toFixed(2)));
+
+  return { items, subtotal, deliveryFee, gst, discount, grandTotal };
 }
+
+buildZomatoOrder(
+  [
+    { name: "Pizza", price: 500, qty: 2, addons: ["sauce:10"] },
+    { name: "Biryani", price: 300, qty: 1, addons: ["Raita:30"] },
+    { name: "Butter Chicken", price: 350, qty: 2, addons: ["Extra Butter:50", "Naan:40"] },
+  ],
+  "FIRST50",
+);

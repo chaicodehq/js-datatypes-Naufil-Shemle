@@ -39,5 +39,34 @@
  *   //      text: "I love this song", wordCount: 4, sentiment: "love" }
  */
 export function parseWhatsAppMessage(message) {
-  // Your code here
+  if (typeof message !== "string" || !message.includes(" - ") || !message.includes(": "))
+    return null;
+
+  let messageArr = message.split(/, | - |: /);
+
+  let wordCount = messageArr[3].split(" ").length;
+
+  let foundFunny = false;
+  let foundLove = false;
+
+  if (
+    messageArr[3].includes("😂") ||
+    messageArr[3].toLowerCase().includes(":)") ||
+    messageArr[3].toLowerCase().includes("haha")
+  )
+    foundFunny = true;
+
+  if (
+    messageArr[3].includes("❤") ||
+    messageArr[3].toLowerCase().includes("love") ||
+    messageArr[3].toLowerCase().includes("pyaar")
+  )
+    foundLove += true;
+
+  let sentiment =
+    foundFunny && foundLove ? "funny" : foundFunny ? "funny" : foundLove ? "love" : "neutral";
+  
+  return {date: messageArr[0], time: messageArr[1], sender: messageArr[2], text:messageArr[3].trim() , wordCount, sentiment}
 }
+
+parseWhatsAppMessage("25/01/2025, 14:30 - Rahul: Bhai pyaar kab hai? ");

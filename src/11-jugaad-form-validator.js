@@ -1,4 +1,5 @@
 /**
+import { format } from './06-whatsapp-parser';
  * 📋 Jugaad Form Validator - Indian Style!
  *
  * India mein form bharna ek art hai! College admission ka form validate
@@ -62,5 +63,61 @@
  *   // => { isValid: false, errors: { name: "...", email: "...", ... } }
  */
 export function validateForm(formData) {
-  // Your code here
+  const errors = {};
+
+  if (
+    typeof formData.name !== "string" ||
+    formData.name.trim().length === 0 ||
+    formData.name.length < 2 ||
+    formData.name.length > 50
+  )
+    errors.name = "Name must be 2-50 characters";
+
+  if (
+    typeof formData.email !== "string" ||
+    !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)
+  )
+    errors.email = "Invalid email format";
+
+  if (
+    typeof formData.phone !== "string" ||
+    formData.phone.length !== 10 ||
+    !/^[6-9]\d{9}$/.test(formData.phone)
+  )
+    errors.phone = "Invalid Indian phone number";
+
+  const parsedAge = parseInt(formData.age);
+
+  if (
+    !/^\d+$/.test(formData.age) ||
+    !(Number.isInteger(parsedAge) && formData.age >= 16 && formData.age <= 100)
+  )
+    errors.age = "Age must be an integer between 16 and 100";
+
+  if (
+    typeof formData.pincode !== "string" ||
+    formData.pincode.length !== 6 ||
+    !/^\d+$/.test(formData.pincode) ||
+    formData.pincode.startsWith("0")
+  )
+    errors.pincode = "Invalid Indian pincode";
+
+  if (!(formData?.state ?? "").trim()) errors.state = "State is required";
+
+  if (Boolean(formData.agreeTerms) === false) errors.agreeTerms = "Must agree to terms";
+
+  return {
+    isValid: Object.keys(errors).length === 0 ? true : false,
+    errors,
+  };
 }
+
+validateForm({
+  name: "Rahul Sharma",
+  email: "rahul@gmail.com",
+  phone: "9876543210",
+  age: 20,
+  pincode: "400001",
+  state: "Maharashtra",
+  agreeTerms: true,
+});

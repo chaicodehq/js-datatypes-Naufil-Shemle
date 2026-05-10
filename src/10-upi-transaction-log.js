@@ -47,5 +47,77 @@
  *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
  */
 export function analyzeUPITransactions(transactions) {
-  // Your code here
+  if (!Array.isArray(transactions) || transactions.length === 0) return null;
+
+  let validTransaction = transactions.filter(
+    (t) => t.amount > 0 && (t.type === "credit" || t.type === "debit"),
+  );
+
+  if (validTransaction.length === 0) return null;
+
+  let totalCredit = validTransaction
+    .filter((t) => t.type === "credit")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  let totalDebit = validTransaction
+    .filter((t) => t.type === "debit")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  let netBalance = totalCredit - totalDebit;
+
+  let transactionCount = validTransaction.length;
+
+  let avgTransaction = transactionCount
+    ? Math.round((totalCredit + totalDebit) / transactionCount)
+    : 0;
+
+  let highestTransaction = validTransaction.reduce(
+    (max, t) => (t.amount > max.amount ? t : max),
+    validTransaction[0],
+  );
+
+  let categoryBreakdown = validTransaction.reduce((acc, t) => {
+    acc[t.category] = (acc[t.category] || 0) + t.amount;
+    return acc;
+  }, {});
+
+  let frequentContact = validTransaction.reduce(
+    (acc, t) => {
+      const name = t.to;
+
+      acc.count[name] = (acc.count[name] || 0) + 1;
+
+      if (acc.count[name] > acc.max) {
+        acc.max = acc.count[name];
+        acc.value = name;
+      }
+
+      return acc;
+    },
+    { count: {}, max: 0, value: null },
+  ).value;
+
+  let allAbove100 = validTransaction.every((t) => t.amount > 100);
+
+  let hasLargeTransaction = validTransaction.some((t) => t.amount >= 5000);
+
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    transactionCount,
+    avgTransaction,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact,
+    allAbove100,
+    hasLargeTransaction,
+  };
 }
+
+analyzeUPITransactions([
+  { id: "T1", type: "credit", amount: 5000, to: "Salary", category: "income", date: "2025-01-01" },
+  { id: "T1", type: "credit", amount: 7000, to: "Salary", category: "income", date: "2025-01-02" },
+  { id: "T2", type: "debit", amount: 200, to: "Swiggy", category: "food", date: "2025-01-03" },
+  { id: "T3", type: "debit", amount: 100, to: "Swiggy", category: "food", date: "2025-01-04" },
+]);
